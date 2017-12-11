@@ -25,18 +25,17 @@ def create_conf():
 
 application = bottle.default_app()
 
-
-
-@get('/')
+@application.get('/')
 def landpage():
     return "HELLO"
 
-@post('/compile')
+@application.post('/compile')
 def compile():
     "Get post request and compile"
+    conf = create_conf()
     stateStore = PostgresFileStore(dbname=conf['dbname'], host=conf['dbhost'], port=conf['dbport'], user=conf['dbuser'], password=conf['dbpass'])
     fileStore = S3FileStore(bucket=conf['bucket'])
-    conf = create_conf()
+    
     StatusCodes = {
         'OK': 200,
         'BadRequest': 400,
@@ -104,12 +103,10 @@ def compile():
 def error404(error):
     print(error)
     print(request)
-    response.status = StatusCodes['NotFound']
+    response.status = 404
     response.content_type = 'application/json'
     return json.dumps({'ERROR':''})
 
 def cleanUp(location):
     """ remove temp files """
     return shutil.rmtree(location)
-
-httpserver.serve(application, host='0.0.0.0', port=80)
