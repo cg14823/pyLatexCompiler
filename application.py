@@ -19,7 +19,9 @@ def create_conf():
         'dbname': os.environ['RDS_DB_NAME'],
         'dbport': os.environ['RDS_PORT'],
         'compilerSecret': os.environ['COMPILER_SECRET_KEY'],
-        'bucket': os.environ['BUCKET_NAME']
+        'bucket': os.environ['BUCKET_NAME'],
+        'akid': os.environ['AWS_ACCESS_KEY_ID'],
+        'secretKey': os.environ['AWS_SECRET_ACCESS_KEY']
     }
 
 
@@ -37,7 +39,7 @@ def compile():
     print('HERE22')
     stateStore = PostgresFileStore(dbname=conf['dbname'], host=conf['dbhost'], port=conf['dbport'], user=conf['dbuser'], password=conf['dbpass'])
     print('HERE33')
-    fileStore = S3FileStore(bucket=conf['bucket'])
+    fileStore = S3FileStore(conf['bucket'], conf['akid'], conf['secretKey'])
     
     StatusCodes = {
         'OK': 200,

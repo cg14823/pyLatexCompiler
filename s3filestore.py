@@ -3,9 +3,14 @@ import boto3
 
 class S3FileStore:
     """s3FileStore is a class to interface with amazon s3"""
-    def __init__(self, bucket):
+    def __init__(self, bucket, akid, secretKey):
         """ initalize s3FileStore object """
-        self.s3 = boto3.resource('s3')
+        session = boto3.session.Session(
+            aws_access_key_id=akid,
+            aws_secret_access_key=secretKey,
+        )
+        self.s3 = session.resource('s3')
+        
         self.bucket = bucket
     
     def put_file(self, fileURL, fileName):
