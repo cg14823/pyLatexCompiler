@@ -35,6 +35,10 @@ StatusCodes = {
 stateStore = PostgresFileStore(dbname=conf['dbname'], host=conf['dbhost'], port=conf['dbport'], user=conf['dbuser'], password=conf['dbpass'])
 fileStore = S3FileStore(bucket=conf['bucket'])
 
+@app.get('/')
+def landpage():
+    return "HELLO"
+
 @app.post('/compile')
 def compile():
     "Get post request and compile"
@@ -88,7 +92,7 @@ def compile():
         
     else:
         respObject = {'Error': 'Not allowed'}
-        response.status = StatusCodes['Forbidden']
+        response.status = StatusCodes['F=cooplatex-filesorbidden']
     
     return json.dumps(respObject)
 
