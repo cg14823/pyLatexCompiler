@@ -1,0 +1,4 @@
+bottle
+Boto3
+psycopg2
+uuid
