@@ -1,7 +1,7 @@
 import os
 import json
 import shutil
-import uuid
+import tempfile
 from bottle import Bottle, run, get, post, request, response, error, route
 from postgresStore import PostgresFileStore
 from s3filestore import S3FileStore
@@ -61,8 +61,7 @@ def compile():
                 response.status = StatusCodes['BadRequest']
                 return json.dumps(respObject)
             
-            folder_uuid = str(uuid.uuid4())
-            os.mkdir(folder_uuid)
+            folder_uuid = tempfile.mkdtemp(suffix=None, prefix=None, dir=None)
             main_file = projectDetails['mainFile']
 
             for f in projectFileDetails:
