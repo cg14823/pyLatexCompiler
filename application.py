@@ -2,6 +2,7 @@ import os
 import json
 import shutil
 import tempfile
+import bottle
 from bottle import Bottle, run, get, post, request, response, error, route
 from postgresStore import PostgresFileStore
 from s3filestore import S3FileStore
@@ -21,7 +22,7 @@ def create_conf():
     }
 
 
-app = Bottle()
+application = bottle.default_app()
 conf = create_conf()
 StatusCodes = {
     'OK': 200,
@@ -35,11 +36,11 @@ StatusCodes = {
 stateStore = PostgresFileStore(dbname=conf['dbname'], host=conf['dbhost'], port=conf['dbport'], user=conf['dbuser'], password=conf['dbpass'])
 fileStore = S3FileStore(bucket=conf['bucket'])
 
-@app.get('/')
+@get('/')
 def landpage():
     return "HELLO"
 
-@app.post('/compile')
+@post('/compile')
 def compile():
     "Get post request and compile"
     response.content_type = 'application/json'
@@ -107,4 +108,5 @@ def cleanUp(location):
     """ remove temp files """
     return shutil.rmtree(location)
 
-run(app, host='localhost', port=conf['port'])
+if __name__ == '__main__':
+    application.run(host='0.0.0.0', debug=True)
