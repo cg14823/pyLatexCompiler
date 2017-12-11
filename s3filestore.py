@@ -1,8 +1,6 @@
 """ All interactions with s3 in this file """
 import boto3
 
-
-
 class S3FileStore:
     """s3FileStore is a class to interface with amazon s3"""
     def __init__(self, bucket):
@@ -26,3 +24,4 @@ class S3FileStore:
             self.s3.Bucket(self.bucket).download_fileobj(fileName, f)
             f.close()
         return True
+    
