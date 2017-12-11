@@ -7,6 +7,7 @@ from bottle import Bottle, run, get, post, request, response, error, route
 from postgresStore import PostgresFileStore
 from s3filestore import S3FileStore
 from latexCompile import pdflatex
+from paste import httpserver
 
 def create_conf():
     "Get configuration from env"
@@ -23,18 +24,8 @@ def create_conf():
 
 
 application = bottle.default_app()
-conf = create_conf()
-StatusCodes = {
-    'OK': 200,
-    'BadRequest': 400,
-    'Unauthorized': 401,
-    'Forbidden': 403,
-    'NotFound': 404,
-    'InternalServerError': 500,
-}
 
-stateStore = PostgresFileStore(dbname=conf['dbname'], host=conf['dbhost'], port=conf['dbport'], user=conf['dbuser'], password=conf['dbpass'])
-fileStore = S3FileStore(bucket=conf['bucket'])
+
 
 @get('/')
 def landpage():
@@ -43,6 +34,17 @@ def landpage():
 @post('/compile')
 def compile():
     "Get post request and compile"
+    stateStore = PostgresFileStore(dbname=conf['dbname'], host=conf['dbhost'], port=conf['dbport'], user=conf['dbuser'], password=conf['dbpass'])
+    fileStore = S3FileStore(bucket=conf['bucket'])
+    conf = create_conf()
+    StatusCodes = {
+        'OK': 200,
+        'BadRequest': 400,
+        'Unauthorized': 401,
+        'Forbidden': 403,
+        'NotFound': 404,
+        'InternalServerError': 500,
+    }
     response.content_type = 'application/json'
     respObject = {}
     if request.headers.get('X-Compiler-Token') == conf['compilerSecret']:
@@ -52,16 +54,18 @@ def compile():
             projectDetails = stateStore.GetProjectDetails(projectName, uid)
 
             if projectDetails == None:
+                stateStore.Close()
                 respObject = {'Error': 'Project details where not found'}
                 response.status = StatusCodes['BadRequest']
                 return json.dumps(respObject)
             
             projectFileDetails = stateStore.GetProjectFiles(projectDetails['pid'])
             if projectFileDetails == None:
+                stateStore.Close()
                 respObject = {'Error': 'Project file details where not found'}
                 response.status = StatusCodes['BadRequest']
                 return json.dumps(respObject)
-            
+            stateStore.Close()
             folder_uuid = tempfile.mkdtemp(suffix=None, prefix=None, dir=None)
             main_file = projectDetails['mainFile']
 
@@ -108,5 +112,4 @@ def cleanUp(location):
     """ remove temp files """
     return shutil.rmtree(location)
 
-if __name__ == '__main__':
-    application.run(host='0.0.0.0', debug=True)
+httpserver.serve(application, host='0.0.0.0', port=80)

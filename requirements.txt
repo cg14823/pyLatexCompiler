@@ -1,3 +1,4 @@
 bottle==0.12.13
 boto3==1.4.8
 psycopg2==2.7.3.1
+paste
