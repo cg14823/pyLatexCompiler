@@ -32,8 +32,11 @@ def landpage():
 @application.post('/compile')
 def compile():
     "Get post request and compile"
+    print('HERE111')
     conf = create_conf()
+    print('HERE22')
     stateStore = PostgresFileStore(dbname=conf['dbname'], host=conf['dbhost'], port=conf['dbport'], user=conf['dbuser'], password=conf['dbpass'])
+    print('HERE33')
     fileStore = S3FileStore(bucket=conf['bucket'])
     
     StatusCodes = {
@@ -45,7 +48,7 @@ def compile():
         'InternalServerError': 500,
     }
     response.content_type = 'application/json'
-    respObject = {}
+    respObject = {'SOMETHING': ''}
     if request.headers.get('X-Compiler-Token') == conf['compilerSecret']:
         if 'uid' in request.json and 'projectName' in request.json:
             uid = request.json['uid']
