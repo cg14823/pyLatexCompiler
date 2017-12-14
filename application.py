@@ -65,7 +65,6 @@ def compile():
        
             
             projectFileDetails = stateStore.GetProjectFiles(projectDetails['pid'])
-            print(projectDetails)
             if projectFileDetails == None:
                 stateStore.Close()
                 respObject = {'Error': 'Project file details where not found'}
@@ -80,8 +79,8 @@ def compile():
                     fileUrl = folder_uuid+"/"+main_file
                 else:
                     fileUrl = folder_uuid+"/"+f['fileName']
+
                 fileKey = f['url']
-                print(fileKey)
                 fileStore.get_file(fileUrl, fileKey)
     
             success, fileOut, logs = pdflatex(folder_uuid, main_file)
