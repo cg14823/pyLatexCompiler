@@ -65,6 +65,7 @@ def compile():
        
             
             projectFileDetails = stateStore.GetProjectFiles(projectDetails['pid'])
+            print(projectDetails)
             if projectFileDetails == None:
                 stateStore.Close()
                 respObject = {'Error': 'Project file details where not found'}
@@ -74,10 +75,13 @@ def compile():
 
             folder_uuid = tempfile.mkdtemp(suffix=None, prefix=None, dir=None)
             main_file = projectDetails['mainFile']
-
             for f in projectFileDetails:
-                fileUrl = folder_uuid+"/"+f['url']
+                if (f['url'] == main_file):
+                    fileUrl = folder_uuid+"/"+main_file
+                else:
+                    fileUrl = folder_uuid+"/"+f['fileName']
                 fileKey = f['url']
+                print(fileKey)
                 fileStore.get_file(fileUrl, fileKey)
     
             success, fileOut, logs = pdflatex(folder_uuid, main_file)
