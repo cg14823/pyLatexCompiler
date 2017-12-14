@@ -34,7 +34,6 @@ def landpage():
 @application.post('/compile')
 def compile():
     "Get post request and compile"
-
     conf = create_conf()
     stateStore = PostgresFileStore(dbname=conf['dbname'], host=conf['dbhost'], port=conf['dbport'], user=conf['dbuser'], password=conf['dbpass'])
     fileStore = S3FileStore(conf['bucket'], conf['akid'], conf['secretKey'])
@@ -49,8 +48,10 @@ def compile():
     }
     response.content_type = 'application/json'
     respObject = {'SOMETHING': ''}
+
     if request.headers.get('X-Compiler-Token') == conf['compilerSecret']:
         if 'uid' in request.json and 'projectName' in request.json:
+            print("REQUEST ACCEPTED")
             uid = request.json['uid']
             projectName = request.json['projectName']
             projectDetails = stateStore.GetProjectDetails(projectName, uid)
@@ -60,6 +61,8 @@ def compile():
                 respObject = {'Error': 'Project details where not found'}
                 response.status = StatusCodes['BadRequest']
                 return json.dumps(respObject)
+
+       
             
             projectFileDetails = stateStore.GetProjectFiles(projectDetails['pid'])
             if projectFileDetails == None:
@@ -67,15 +70,16 @@ def compile():
                 respObject = {'Error': 'Project file details where not found'}
                 response.status = StatusCodes['BadRequest']
                 return json.dumps(respObject)
-           
+            
+
             folder_uuid = tempfile.mkdtemp(suffix=None, prefix=None, dir=None)
             main_file = projectDetails['mainFile']
 
             for f in projectFileDetails:
-                fileUrl = folder_uuid+"/"+f['fileName']
+                fileUrl = folder_uuid+"/"+f['url']
                 fileKey = f['url']
                 fileStore.get_file(fileUrl, fileKey)
-
+    
             success, fileOut, logs = pdflatex(folder_uuid, main_file)
 
             if not success:
@@ -86,11 +90,10 @@ def compile():
             
             fileName = fileOut[fileOut.rfind("/")+1:]
             fileStore.put_file(fileOut,fileName)
-            cleanUp(folder_uuid)
 
             stateStore.ProjectCompiled(projectName, uid, fileName)
             stateStore.Close()
-
+            cleanUp(folder_uuid)
             respObject = {'Error': '', 'logs': logs, 'Filename':fileName}
             response.status = StatusCodes['OK']
             return json.dumps(respObject)
@@ -116,3 +119,4 @@ def error404(error):
 def cleanUp(location):
     """ remove temp files """
     return shutil.rmtree(location)
+application.run()
