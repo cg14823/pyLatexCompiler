@@ -119,4 +119,3 @@ def error404(error):
 def cleanUp(location):
     """ remove temp files """
     return shutil.rmtree(location)
-application.run()
