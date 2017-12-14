@@ -21,7 +21,7 @@ class PostgresFileStore:
     
     def GetProjectFiles(self, projectID):
         """ Return the files that match projectID if no files are foudn return None"""
-        query = "SELECT file_type, project_id, url, file_name FROM editor_files WHERE project_id=%s;"
+        query = "SELECT file_type, project_id, url, file_name FROM editor_files WHERE project_id=(%s);"
         data = [projectID]
         self.cursor.execute(query, data)
         files = self.cursor.fetchall()
@@ -42,7 +42,7 @@ class PostgresFileStore:
 
     def GetProjectDetails(self, projectName, ownerID):
         """ Retrieves project details """
-        query = " SELECT id, owner_id, name, main_file FROM editor_project WHERE name=%s AND owner_id=%s"
+        query = "SELECT id, owner_id, name, main_file FROM editor_project WHERE name=(%s) AND owner_id=(%s);"
         data = [projectName, ownerID]
         self.cursor.execute(query, data)
         data = self.cursor.fetchone()
@@ -51,3 +51,11 @@ class PostgresFileStore:
             return data
         
         return {'pid': data[0], 'uid': data[1], 'name': data[2], 'mainFile': data[3]}
+
+    def ProjectCompiled(self, projectName, ownerID, pdfName):
+        """ Update Project data """
+        query = "UPDATE editor_project SET compiled=1, compiled_file=(%s) WHERE name=(%s) and owner_id=(%s);"
+        data = [pdfName,projectName, ownerID]
+        self.cursor.execute(query,data)
+        self.conn.commit()
+        return 

@@ -34,11 +34,9 @@ def landpage():
 @application.post('/compile')
 def compile():
     "Get post request and compile"
-    print('HERE111')
+
     conf = create_conf()
-    print('HERE22')
     stateStore = PostgresFileStore(dbname=conf['dbname'], host=conf['dbhost'], port=conf['dbport'], user=conf['dbuser'], password=conf['dbpass'])
-    print('HERE33')
     fileStore = S3FileStore(conf['bucket'], conf['akid'], conf['secretKey'])
     
     StatusCodes = {
@@ -69,7 +67,7 @@ def compile():
                 respObject = {'Error': 'Project file details where not found'}
                 response.status = StatusCodes['BadRequest']
                 return json.dumps(respObject)
-            stateStore.Close()
+           
             folder_uuid = tempfile.mkdtemp(suffix=None, prefix=None, dir=None)
             main_file = projectDetails['mainFile']
 
@@ -90,6 +88,9 @@ def compile():
             fileStore.put_file(fileOut,fileName)
             cleanUp(folder_uuid)
 
+            stateStore.ProjectCompiled(projectName, uid, fileName)
+            stateStore.Close()
+
             respObject = {'Error': '', 'logs': logs, 'Filename':fileName}
             response.status = StatusCodes['OK']
             return json.dumps(respObject)
@@ -100,7 +101,7 @@ def compile():
         
     else:
         respObject = {'Error': 'Not allowed'}
-        response.status = StatusCodes['F=cooplatex-filesorbidden']
+        response.status = StatusCodes['Forbidden']
     
     return json.dumps(respObject)
 
